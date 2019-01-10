@@ -1288,7 +1288,8 @@ impl<'o, 'gcx: 'tcx, 'tcx> dyn AstConv<'gcx, 'tcx> + 'o {
                                      span: Span,
                                      ty: Ty<'tcx>,
                                      ty_path_def: Def,
-                                     item_segment: &hir::PathSegment)
+                                     item_segment: &hir::PathSegment,
+                                     permit_variants: bool)
                                      -> (Ty<'tcx>, Def)
     {
         let tcx = self.tcx();
@@ -1305,11 +1306,21 @@ impl<'o, 'gcx: 'tcx, 'tcx> dyn AstConv<'gcx, 'tcx> + 'o {
                     tcx.hygienic_eq(assoc_name, vd.ident, adt_def.did)
                 });
                 if let Some(variant_def) = variant_def {
-                    check_type_alias_enum_variants_enabled(tcx, span);
+                    if permit_variants {
+                        check_type_alias_enum_variants_enabled(tcx, span);
 
-                    let def = Def::Variant(variant_def.did);
-                    tcx.check_stability(def.def_id(), Some(ref_id), span);
-                    return (ty, def);
+                        let def = Def::Variant(variant_def.did);
+                        tcx.check_stability(def.def_id(), Some(ref_id), span);
+                        return (ty, def);
+                    } else {
+                        use rustc::lint::builtin::TYPE_VS_VARIANT_AMBIGUITY;
+                        tcx.lint_node(
+                            TYPE_VS_VARIANT_AMBIGUITY,
+                            ref_id,
+                            span,
+                            "type vs variant ambiguity",
+                        );
+                    }
                 }
             },
             _ => (),
@@ -1773,7 +1784,7 @@ impl<'o, 'gcx: 'tcx, 'tcx> dyn AstConv<'gcx, 'tcx> + 'o {
                 } else {
                     Def::Err
                 };
-                self.associated_path_def_to_ty(ast_ty.id, ast_ty.span, ty, def, segment).0
+                self.associated_path_def_to_ty(ast_ty.id, ast_ty.span, ty, def, segment, false).0
             }
             hir::TyKind::Array(ref ty, ref length) => {
                 let length_def_id = tcx.hir().local_def_id(length.id);

@@ -150,6 +150,12 @@ declare_lint! {
 }
 
 declare_lint! {
+    pub TYPE_VS_VARIANT_AMBIGUITY,
+    Forbid,
+    "type vs variant ambiguity"
+}
+
+declare_lint! {
     pub SAFE_PACKED_BORROWS,
     Warn,
     "safe borrows of fields of packed structs were was erroneously allowed"
@@ -400,6 +406,7 @@ impl LintPass for HardwiredLints {
             CONST_ERR,
             RENAMED_AND_REMOVED_LINTS,
             SAFE_EXTERN_STATICS,
+            TYPE_VS_VARIANT_AMBIGUITY,
             SAFE_PACKED_BORROWS,
             PATTERNS_IN_FNS_WITHOUT_BODY,
             LEGACY_DIRECTORY_OWNERSHIP,

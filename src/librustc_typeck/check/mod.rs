@@ -4623,7 +4623,7 @@ impl<'a, 'gcx, 'tcx> FnCtxt<'a, 'gcx, 'tcx> {
                     Def::Err
                 };
                 let (ty, def) = AstConv::associated_path_def_to_ty(self, node_id, path_span,
-                                                                   ty, def, segment);
+                                                                   ty, def, segment, true);
 
                 // Write back the new resolution.
                 let hir_id = self.tcx.hir().node_to_hir_id(node_id);
